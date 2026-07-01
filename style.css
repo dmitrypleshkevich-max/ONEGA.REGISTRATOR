@@ -1,21 +1,110 @@
 :root {
-    --bg:#f5f5f5; --panel:#ffffff; --border:#cfcfcf;
-    --header:#294c7a; --button:#2d74da; --success:#2e8b57; --error:#c53929;
+    --bg: #f5f5f5; 
+    --panel: #ffffff; 
+    --border: #cfcfcf;
+    --header: #294c7a; 
+    --button: #2d74da; 
+    --success: #2e8b57; 
+    --error: #c53929;
+    --nav-bg: #dcdcdc; /* Более темный фон для навигации */
+    --text-main: #333333;
 }
-* { box-sizing:border-box; margin:0; padding:0; font-family:sans-serif; }
-body { background:var(--bg); }
-#app { max-width:800px; margin:auto; min-height:100vh; display:flex; flex-direction:column; }
-header { background:var(--header); color:white; padding:15px; }
-nav { display:flex; background:#e8e8e8; }
-.tabButton { flex:1; padding:15px; border:none; cursor:pointer; background:#e8e8e8; }
-.tabButton.active { background:white; font-weight:bold; }
-.tab { display:none; padding:20px; }
-.tab.active { display:block; }
-.card { background:white; padding:15px; border-radius:5px; margin-bottom:15px; border:1px solid var(--border); }
-.field { margin-bottom:15px; }
-.hidden {
-    display: none !important;
+
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: sans-serif; 
 }
-.inputRow { display:flex; gap:10px; }
-input { flex:1; padding:10px; font-size:16px; }
-button { padding:10px; background:var(--button); color:white; border:none; cursor:pointer; }
+
+body { 
+    background: var(--bg); 
+    color: var(--text-main); 
+}
+
+#app { 
+    max-width: 800px; 
+    margin: auto; 
+    min-height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+}
+
+header { 
+    background: var(--header); 
+    color: white; 
+    padding: 15px; 
+}
+
+nav { 
+    display: flex; 
+    background: var(--nav-bg); 
+}
+
+.tabButton { 
+    flex: 1; 
+    padding: 15px; 
+    border: none; 
+    cursor: pointer; 
+    background: transparent; 
+    color: var(--text-main); 
+    font-size: 14px;
+}
+
+.tabButton.active { 
+    background: white; 
+    font-weight: bold; 
+    border-bottom: 3px solid var(--header); 
+}
+
+.tab { 
+    display: none; 
+    padding: 20px; 
+}
+
+.tab.active { 
+    display: block; 
+}
+
+.card { 
+    background: var(--panel); 
+    padding: 15px; 
+    border-radius: 5px; 
+    margin-bottom: 15px; 
+    border: 1px solid var(--border); 
+}
+
+.field { 
+    margin-bottom: 15px; 
+}
+
+.hidden { 
+    display: none !important; 
+}
+
+.inputRow { 
+    display: flex; 
+    gap: 10px; 
+}
+
+input { 
+    flex: 1; 
+    padding: 10px; 
+    font-size: 16px; 
+    border: 1px solid var(--border);
+}
+
+button { 
+    padding: 10px; 
+    background: var(--button); 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+    font-size: 14px;
+}
+
+/* Дополнительный отступ для статуса */
+#status {
+    font-weight: bold;
+    padding: 5px 0;
+}
