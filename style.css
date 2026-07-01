@@ -38,18 +38,29 @@ header {
 
 nav { 
     display: flex; 
-    background: var(--nav-bg); 
+    border-bottom: 2px solid #333; /* Разделитель для четкости */
 }
 
+/* Общие стили для кнопок вкладок */
 .tabButton { 
     flex: 1; 
     padding: 15px; 
     border: none; 
     cursor: pointer; 
-    background: transparent; 
-    color: var(--text-main); 
-    font-size: 14px;
+    font-weight: bold;
+    font-size: 16px;
+    transition: all 0.2s;
 }
+
+/* Вкладка "Задание" (scanTab) */
+/* По умолчанию серая, при активации - Красный фон, белый шрифт */
+[data-tab="scanTab"] { background: #e0e0e0; color: #333; }
+[data-tab="scanTab"].active { background: #c53929; color: #ffffff; }
+
+/* Вкладка "Сводка" (summaryTab) */
+/* По умолчанию серая, при активации - Белый фон, красный шрифт */
+[data-tab="summaryTab"] { background: #e0e0e0; color: #333; }
+[data-tab="summaryTab"].active { background: #ffffff; color: #c53929; border: 2px solid #c53929; }
 
 .tabButton.active { 
     background: white; 
