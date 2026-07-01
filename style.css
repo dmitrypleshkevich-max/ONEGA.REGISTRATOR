@@ -6,7 +6,6 @@
     --button: #2d74da; 
     --success: #2e8b57; 
     --error: #c53929;
-    --nav-bg: #dcdcdc; /* Более темный фон для навигации */
     --text-main: #333333;
 }
 
@@ -38,10 +37,10 @@ header {
 
 nav { 
     display: flex; 
-    border-bottom: 2px solid #333; /* Разделитель для четкости */
+    border-bottom: 2px solid #333; 
 }
 
-/* Общие стили для кнопок вкладок */
+/* Базовый стиль кнопок вкладок */
 .tabButton { 
     flex: 1; 
     padding: 15px; 
@@ -49,23 +48,22 @@ nav {
     cursor: pointer; 
     font-weight: bold;
     font-size: 16px;
+    background: #e0e0e0; 
+    color: #333;
     transition: all 0.2s;
 }
 
-/* Вкладка "Задание" (scanTab) */
-/* По умолчанию серая, при активации - Красный фон, белый шрифт */
-[data-tab="scanTab"] { background: #e0e0e0; color: #333; }
-[data-tab="scanTab"].active { background: #c53929; color: #ffffff; }
+/* Активная вкладка "Сканирование" */
+[data-tab="scanTab"].active { 
+    background: #c53929; 
+    color: #ffffff; 
+}
 
-/* Вкладка "Сводка" (summaryTab) */
-/* По умолчанию серая, при активации - Белый фон, красный шрифт */
-[data-tab="summaryTab"] { background: #e0e0e0; color: #333; }
-[data-tab="summaryTab"].active { background: #ffffff; color: #c53929; border: 2px solid #c53929; }
-
-.tabButton.active { 
-    background: white; 
-    font-weight: bold; 
-    border-bottom: 3px solid var(--header); 
+/* Активная вкладка "Сводка" */
+[data-tab="summaryTab"].active { 
+    background: #ffffff; 
+    color: #c53929; 
+    border-bottom: 3px solid #c53929; 
 }
 
 .tab { 
@@ -100,9 +98,10 @@ nav {
 
 input { 
     flex: 1; 
-    padding: 10px; 
+    padding: 12px; 
     font-size: 16px; 
     border: 1px solid var(--border);
+    border-radius: 4px;
 }
 
 button { 
@@ -114,7 +113,6 @@ button {
     font-size: 14px;
 }
 
-/* Дополнительный отступ для статуса */
 #status {
     font-weight: bold;
     padding: 5px 0;
