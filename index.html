@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Регистратор паллет</title>
+    <title>Регистратор отгрузки Азбука Снеков</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <div id="app">
     <header>
-        <div>
-            <h1>📦 Регистратор паллет</h1>
-            <span>Version 0.2</span>
-        </div>
-        <div id="goodsStatus">Загрузка...</div>
+        <h1>📦 Регистратор паллет АзбукаСнеков</h1>
+        <div id="goodsStatus">Загрузка данных...</div>
     </header>
 
     <nav>
@@ -23,60 +19,37 @@
     </nav>
 
     <main>
-        <!-- Вкладка настроек/старта -->
-        <section id="settingsTab" class="tab active">
+        <section id="scanTab" class="tab active">
             <div class="card">
-                <h2>Начало работы</h2>
-                <button onclick="startJob()" style="width:100%; padding:20px; font-size:20px;">Начать задание</button>
-            </div>
-        </section>
-
-        <section id="scanTab" class="tab">
-            <div class="card">
-                <div class="field">
-                    <label>Код контейнера</label>
-                    <div class="inputRow">
-                        <input id="containerInput" type="text" autocomplete="off">
-                    </div>
-                </div>
-                <div id="foundedContainer" style="font-weight:bold; margin-bottom:10px; color:#294c7a;"></div>
+                <label>Номер задания:</label>
+                <input id="jobNameInput" type="text" placeholder="Введите имя задания..." style="width:100%; padding:10px; margin-bottom:15px;">
+                
+                <label>Код контейнера</label>
+                <input id="containerInput" type="text" autocomplete="off" style="width:100%; padding:10px;">
+                
+                <div id="foundedContainer" style="font-weight:bold; margin:15px 0; min-height: 20px;"></div>
+                
                 <div class="field hidden" id="ssccFieldWrapper">
                     <label>Код SSCC</label>
-                    <div class="inputRow">
-                        <input id="ssccInput" type="text" autocomplete="off">
-                    </div>
+                    <input id="ssccInput" type="text" autocomplete="off" style="width:100%; padding:10px;">
                 </div>
             </div>
-            <div class="card"><div id="status">Нажмите "Начать задание"</div></div>
-            <div class="card"><div class="stat">Всего контейнеров: <strong id="palletCount">0</strong></div></div>
+            <div class="card"><div id="status">Введите номер задания и сканируйте контейнер</div></div>
         </section>
 
         <section id="summaryTab" class="tab">
-    <div class="card">
-        <div class="stat">Всего контейнеров: <strong id="summaryCount">0</strong></div>
-        <table border="1" width="100%">
-            <thead>
-                <tr><th>Товар</th><th>Паллет</th><th>Всего</th></tr>
-            </thead>
-            <tbody id="summaryTable">
-                </tbody>
-        </table>
-    </div>
-    <button style="width:100%; background:#2e8b57;">Отправить</button>
-</section>
-        
+            <div class="card">
+                <h3>Итоги</h3>
+                <div class="stat">Всего контейнеров: <strong id="summaryCount">0</strong></div>
+                <div class="stat">SSCC (уник/всего): <strong id="summarySSCC">0/0</strong></div>
+                <table border="1" width="100%" style="margin-top:10px;">
+                    <thead><tr><th>Товар</th><th>Паллет</th><th>Кол-во</th></tr></thead>
+                    <tbody id="summaryTable"><tr><td colspan="3">Нет данных</td></tr></tbody>
+                </table>
+            </div>
+        </section>
     </main>
-
-    
-    <script>
-        // Переключение вкладок (базовая логика)
-        document.querySelectorAll(".tabButton").forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-                document.getElementById(btn.dataset.tab).classList.add("active");
-            }
-        });
-    </script>
-    <script src="app.js"></script>
+</div>
+<script src="app.js"></script>
 </body>
 </html>
