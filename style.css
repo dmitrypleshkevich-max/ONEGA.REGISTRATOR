@@ -34,3 +34,8 @@ footer { padding:10px; text-align:center; color:#888; font-size:12px; }
     .inputRow { flex-direction:column; }
     .cameraButton { width:100%; }
 }
+
+
+.hidden {
+    display: none;
+}
