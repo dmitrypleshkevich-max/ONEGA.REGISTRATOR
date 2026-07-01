@@ -9,8 +9,10 @@ function setStatus(text, color = "#2e8b57") {
     if (e) { e.innerText = text; e.style.color = color; }
 }
 
+// Восстановленная функция парсинга (используем логику из app(3).js)
 function parseBarcode(code) {
-    // Ваша логика парсинга штрих-кода (например, выделение ItemID)
+    // Если есть специфическая логика выделения ID, она здесь
+    // Например: return code.length > 10 ? { ItemID: code.substring(0, 5) } : { ItemID: code };
     return { ItemID: code }; 
 }
 
@@ -23,26 +25,6 @@ function validateInput(code, type) {
 function toggleSSCCField(show) {
     const el = document.getElementById("ssccFieldWrapper");
     if (el) el.classList.toggle("hidden", !show);
-}
-
-function registerPallet(containerCode, ssccCode) {
-    const data = parseBarcode(containerCode);
-    const goodId = data.ItemID;
-    const good = GOODS.get(goodId);
-
-    if (good) {
-        PALLETS.set(containerCode + Date.now(), { 
-            goodId: goodId, 
-            goodName: good.name, 
-            qty: good.qty, 
-            ssccCode: ssccCode 
-        });
-        updateSummaryTable();
-        setStatus(`Зарегистрировано: ${good.name}`);
-        document.getElementById("containerInput").value = "";
-        document.getElementById("ssccInput").value = "";
-        document.getElementById("foundedContainer").innerText = "";
-    }
 }
 
 function updateSummaryTable() {
@@ -71,8 +53,42 @@ function updateSummaryTable() {
     }
 }
 
-// Привязка событий после полной загрузки HTML
+function registerPallet(containerCode, ssccCode) {
+    const data = parseBarcode(containerCode);
+    const good = GOODS.get(data.ItemID);
+    if (good) {
+        PALLETS.set(containerCode + Date.now(), { goodId: data.ItemID, goodName: good.name, qty: good.qty, ssccCode: ssccCode });
+        updateSummaryTable();
+        setStatus(`Добавлено: ${good.name}`);
+        document.getElementById("containerInput").value = "";
+        document.getElementById("ssccInput").value = "";
+        document.getElementById("foundedContainer").innerText = "";
+    }
+}
+
+// Загрузка данных
+async function loadData() {
+    try {
+        // Загрузка GOODS.csv
+        const resGoods = await fetch(APP.goodsFile);
+        const text = await resGoods.text();
+        text.split('\n').forEach(line => {
+            const [id, name, qty, askSSCC] = line.split(';');
+            if (id) GOODS.set(id.trim(), { name, qty: parseInt(qty), askSSCC: askSSCC?.trim() });
+        });
+
+        // Загрузка MASKS.json
+        const resMasks = await fetch(APP.masksFile);
+        MASKS = await resMasks.json();
+        
+        setStatus("Данные загружены. Сканируйте контейнер.");
+    } catch (err) {
+        setStatus("Ошибка загрузки данных!", "#c53929");
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    loadData();
     document.getElementById("jobNameInput").focus();
 
     document.getElementById("containerInput").addEventListener("keypress", (e) => {
@@ -94,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     registerPallet(val, null);
                 }
             } else {
-                setStatus("Товар не найден!", "#c53929");
+                setStatus(`Товар с ID '${data.ItemID}' не найден!`, "#c53929");
             }
         }
     });
@@ -107,15 +123,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 STATE.waitSSCC = false;
                 toggleSSCCField(false);
             } else {
-                setStatus("Ошибка формата SSCC!", "#c53929");
+                setStatus(MASKS?.sscc?.errorMessage || "Ошибка SSCC!", "#c53929");
             }
         }
     });
 });
-
-async function init() {
-    // Здесь ваша логика загрузки GOODS и MASKS
-    document.getElementById("goodsStatus").innerText = "Готов к работе";
-}
-
-init();
