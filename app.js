@@ -1,15 +1,25 @@
-const APP = { 
-    goodsFile: "goods.csv", 
-    masksFile: "masks.json",
-    structureFile: "packing.json"
-};
+const APP = { goodsFile: "goods.csv", masksFile: "masks.json", structureFile: "packing.json" };
 const STATE = { waitSSCC: false, currentContainer: null };
 const GOODS = new Map();
 const PALLETS = new Map();
 let MASKS = null;
 let PACK_STRUCTURE = null;
 
-// --- Утилиты ---
+// Делаем функцию доступной глобально для HTML-кнопки
+window.startJob = function() {
+    STATE.waitSSCC = false;
+    PALLETS.clear();
+    const countEl = document.getElementById("palletCount");
+    if (countEl) countEl.innerText = "0";
+    
+    const tableEl = document.getElementById("summaryTable");
+    if (tableEl) tableEl.innerHTML = '<tr><td colspan="3">Нет данных</td></tr>';
+    
+    setStatus("Задание начато. Сканируйте контейнер.");
+    const input = document.getElementById("containerInput");
+    if (input) input.focus();
+};
+
 function setStatus(text, color = "#2e8b57") {
     const e = document.getElementById("status");
     if (e) { e.innerText = text; e.style.color = color; }
@@ -151,10 +161,12 @@ document.getElementById("ssccInput").addEventListener("keypress", (e) => {
 });
 
 async function init() {
+    console.log("Инициализация приложения...");
     await loadGoods();
     await loadMasks();
     await loadStructure();
-    document.getElementById("containerInput").focus();
+    const input = document.getElementById("containerInput");
+    if (input) input.focus();
 }
 
 init();
