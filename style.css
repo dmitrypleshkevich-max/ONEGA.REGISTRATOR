@@ -1,0 +1,36 @@
+:root {
+    --bg:#f5f5f5; --panel:#ffffff; --border:#cfcfcf;
+    --header:#294c7a; --header-text:white;
+    --button:#2d74da; --button-hover:#205eb6;
+    --success:#2e8b57; --error:#c53929; --text:#222;
+}
+
+* { box-sizing:border-box; margin:0; padding:0; font-family:Segoe UI,Arial,sans-serif; }
+body { background:var(--bg); color:var(--text); }
+#app { max-width:1000px; margin:auto; min-height:100vh; display:flex; flex-direction:column; }
+header { background:var(--header); color:white; padding:16px; display:flex; justify-content:space-between; align-items:center; }
+nav { display:flex; background:#e8e8e8; border-bottom:1px solid var(--border); }
+.tabButton { flex:1; padding:14px; border:none; background:#e8e8e8; cursor:pointer; font-size:16px; }
+.tabButton.active { background:white; font-weight:bold; border-bottom:3px solid var(--button); }
+main { flex:1; padding:20px; }
+.tab { display:none; }
+.tab.active { display:block; }
+.card { background:white; border:1px solid var(--border); border-radius:6px; padding:18px; margin-bottom:20px; }
+.field { margin-bottom:18px; }
+.field label { display:block; margin-bottom:6px; font-weight:bold; }
+.inputRow { display:flex; gap:10px; }
+.inputRow input { flex:1; padding:12px; font-size:18px; }
+.cameraButton { width:60px; font-size:24px; }
+button { padding:12px 18px; background:var(--button); color:white; border:none; cursor:pointer; font-size:16px; }
+button:hover { background:var(--button-hover); }
+#status { font-size:20px; font-weight:bold; color:var(--success); }
+table { width:100%; border-collapse:collapse; }
+th { background:#ececec; }
+td,th { padding:10px; border:1px solid #d0d0d0; text-align:left; }
+.stat { font-size:22px; margin-bottom:10px; }
+footer { padding:10px; text-align:center; color:#888; font-size:12px; }
+
+@media (max-width:700px) {
+    .inputRow { flex-direction:column; }
+    .cameraButton { width:100%; }
+}
