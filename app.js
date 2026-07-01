@@ -1,9 +1,48 @@
+const APP = { goodsFile: "goods.csv", masksFile: "masks.json" };
+const STATE = { waitSSCC: false, currentContainer: null };
 const GOODS = new Map();
 const PALLETS = new Map();
+let MASKS = null;
 
 function setStatus(text, color = "#2e8b57") {
     const e = document.getElementById("status");
     if (e) { e.innerText = text; e.style.color = color; }
+}
+
+function parseBarcode(code) {
+    // Ваша логика парсинга штрих-кода (например, выделение ItemID)
+    return { ItemID: code }; 
+}
+
+function validateInput(code, type) {
+    if (!MASKS || !MASKS[type]) return true;
+    const regex = new RegExp(MASKS[type].pattern);
+    return regex.test(code);
+}
+
+function toggleSSCCField(show) {
+    const el = document.getElementById("ssccFieldWrapper");
+    if (el) el.classList.toggle("hidden", !show);
+}
+
+function registerPallet(containerCode, ssccCode) {
+    const data = parseBarcode(containerCode);
+    const goodId = data.ItemID;
+    const good = GOODS.get(goodId);
+
+    if (good) {
+        PALLETS.set(containerCode + Date.now(), { 
+            goodId: goodId, 
+            goodName: good.name, 
+            qty: good.qty, 
+            ssccCode: ssccCode 
+        });
+        updateSummaryTable();
+        setStatus(`Зарегистрировано: ${good.name}`);
+        document.getElementById("containerInput").value = "";
+        document.getElementById("ssccInput").value = "";
+        document.getElementById("foundedContainer").innerText = "";
+    }
 }
 
 function updateSummaryTable() {
@@ -32,30 +71,51 @@ function updateSummaryTable() {
     }
 }
 
-document.getElementById("containerInput").addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-        const val = e.target.value.trim();
-        const good = GOODS.get(val); // Упрощено: ID товара = код
-        if (good) {
-            document.getElementById("foundedContainer").style.color = "#f1c40f";
-            document.getElementById("foundedContainer").innerText = `Товар: ${good.name} | Кол-во: ${good.qty}`;
-            
-            if (good.askSSCC === "1") {
-                document.getElementById("ssccFieldWrapper").classList.remove("hidden");
-                document.getElementById("ssccInput").focus();
+// Привязка событий после полной загрузки HTML
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("jobNameInput").focus();
+
+    document.getElementById("containerInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            const val = e.target.value.trim();
+            const data = parseBarcode(val);
+            const good = GOODS.get(data.ItemID);
+
+            if (good) {
+                document.getElementById("foundedContainer").style.color = "#f1c40f";
+                document.getElementById("foundedContainer").innerText = `Товар: ${good.name} | Кол-во: ${good.qty}`;
+                
+                if (good.askSSCC === "1") {
+                    STATE.currentContainer = val;
+                    STATE.waitSSCC = true;
+                    toggleSSCCField(true);
+                    document.getElementById("ssccInput").focus();
+                } else {
+                    registerPallet(val, null);
+                }
             } else {
-                PALLETS.set(val + Date.now(), { goodId: val, goodName: good.name, qty: good.qty });
-                updateSummaryTable();
-                e.target.value = "";
+                setStatus("Товар не найден!", "#c53929");
             }
         }
-    }
+    });
+
+    document.getElementById("ssccInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter" && STATE.waitSSCC) {
+            const ssccCode = e.target.value.trim();
+            if (validateInput(ssccCode, "sscc")) {
+                registerPallet(STATE.currentContainer, ssccCode);
+                STATE.waitSSCC = false;
+                toggleSSCCField(false);
+            } else {
+                setStatus("Ошибка формата SSCC!", "#c53929");
+            }
+        }
+    });
 });
 
 async function init() {
-    // Здесь должна быть ваша логика загрузки CSV
+    // Здесь ваша логика загрузки GOODS и MASKS
     document.getElementById("goodsStatus").innerText = "Готов к работе";
-    document.getElementById("jobNameInput").focus();
 }
 
 init();
