@@ -19,20 +19,24 @@ document.getElementById("containerInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
         const code = e.target.value.trim();
         const good = GOODS.get(code);
+
         if (good) {
             STATE.currentContainer = code;
+
             if (good.askSSCC === "1") {
                 STATE.waitSSCC = true;
                 toggleSSCCField(true);
-                setStatus(`Товар ${good.name}. Введите SSCC.`);
+                setStatus(`Товар: ${good.name}. Введите SSCC.`);
                 document.getElementById("ssccInput").focus();
+                // НЕ ОЧИЩАЕМ контейнер здесь, чтобы код остался виден!
             } else {
                 registerPallet(code, null);
+                e.target.value = ""; // Очищаем только если сразу зарегистрировали
             }
         } else {
             setStatus("Товар не найден!", "#c53929");
+            e.target.value = ""; // Очищаем, если товара нет
         }
-        e.target.value = "";
     }
 });
 
