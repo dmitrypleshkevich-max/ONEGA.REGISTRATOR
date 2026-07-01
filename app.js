@@ -115,26 +115,22 @@ function updateSummaryTable() {
 document.getElementById("containerInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
         const fullCode = e.target.value.trim();
+        const data = parseBarcode(fullCode);
         
-        // 1. Сначала парсим данные по структуре
-        const data = parseBarcode(fullCode); 
+        // ВАЖНО: добавим вывод в консоль
+        console.log("Полный код:", fullCode);
+        console.log("Распарсенные данные:", data);
         
-        // 2. Берем ID из распарсенных данных
-        const goodId = data ? data.ItemID : fullCode;
-        
-        // 3. Ищем товар по ID
+        const goodId = data && data.ItemID ? data.ItemID.trim() : fullCode;
+        console.log("Искомый GoodID:", "'" + goodId + "'");
+        console.log("Что есть в GOODS:", Array.from(GOODS.keys()));
+
         const good = GOODS.get(goodId);
 
         if (good) {
-            STATE.currentContainer = fullCode;
-            if (good.askSSCC === "1") {
-                // ... (ваша логика работы с SSCC)
-            } else {
-                registerPallet(fullCode, null);
-            }
+            // ... остальная логика
         } else {
-            setStatus(`Товар с ID ${goodId} не найден!`, "#c53929");
-            e.target.value = "";
+            setStatus(`Товар с ID '${goodId}' не найден!`, "#c53929");
         }
     }
 });
