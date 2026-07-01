@@ -95,11 +95,32 @@ async function loadMasks() {
 
 // Функция проверки по маске
 function validateInput(value, type) {
-    if (!MASKS || !MASKS[type]) return true; // Если файла нет — пропускаем проверку
-    const regex = new RegExp(MASKS[type].mask);
-    return regex.test(value);
+    if (!MASKS || !MASKS[type] || !MASKS[type].masks) return true;
+
+    // Проверяем, подходит ли значение хоть под одну маску из массива
+    const isMatch = MASKS[type].masks.some(item => {
+        const regex = new RegExp(item.regex);
+        return regex.test(value);
+    });
+
+    return isMatch;
 }
 
+
+function getParsedData(value) {
+    // Проходим по маскам контейнера и возвращаем результат первой подошедшей
+    for (let item of MASKS.container.masks) {
+        const match = value.match(new RegExp(item.regex));
+        if (match) {
+            // Если это формат 11100234 (с группами захвата)
+            if (match.length > 3) {
+                return { goodId: match[1], quantity: parseInt(match[3], 10) };
+            }
+            return { raw: value };
+        }
+    }
+    return null;
+}
 // Пример использования в слушателе контейнера
 document.getElementById("containerInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
