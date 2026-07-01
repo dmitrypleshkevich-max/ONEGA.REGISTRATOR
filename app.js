@@ -1,113 +1,127 @@
-const APP = { goodsFile: "goods.csv", masksFile: "masks.json" };
-const STATE = { waitSSCC: false, currentContainer: null, currentGood: null };
 const GOODS = new Map();
-const PALLETS = new Map();
-let MASKS = null;
+const STATE = {
+    jobActive: false,
+    scannedContainers: new Set(),
+    scannedSSCC: new Set(),
+    totalSSCCCount: 0
+};
 
 // --- Инициализация ---
-document.addEventListener("DOMContentLoaded", () => {
-    init();
-});
-
 async function init() {
     await loadGoods();
-    await loadMasks();
+    toggleSSCCField(false);
 }
 
-// --- Загрузка данных ---
+// Загрузка товаров с учетом UTF-8 и разделителя ;
 async function loadGoods() {
     try {
-        const response = await fetch(APP.goodsFile);
-        if (!response.ok) throw new Error("Файл goods.csv не найден");
-        const text = await response.text();
-        parseGoodsCSV(text);
-        document.getElementById("goodsStatus").innerText = "goods.csv загружен";
-        document.getElementById("settingsGoods").innerText = GOODS.size + " товаров";
-    } catch (ex) {
-        console.error(ex);
-        document.getElementById("goodsStatus").innerText = "Ошибка загрузки goods.csv";
-        setStatus("Ошибка загрузки справочника товаров", "#c53929");
-    }
-}
-
-function parseGoodsCSV(csv) {
-    GOODS.clear();
-    const rows = csv.replace(/\r/g, "").split("\n");
-    // Пропускаем заголовок (i=1)
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i].trim();
-        if (row === "") continue;
+        const response = await fetch("goods.csv");
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+        const result = await reader.read();
+        const text = decoder.decode(result.value);
         
-        // Разделяем по точке с запятой
-        const [id, name, askSSCC] = row.split(";");
-        if (id && name) {
-            GOODS.set(id.trim(), { name: name.trim(), askSSCC: askSSCC.trim() });
+        const rows = text.replace(/\r/g, "").split("\n");
+        for (let i = 1; i < rows.length; i++) {
+            const [id, name, askSSCC] = rows[i].split(";");
+            if (id) GOODS.set(id.trim(), { name: name.trim(), askSSCC: parseInt(askSSCC) });
         }
+        document.getElementById("goodsStatus").innerText = "Справочник загружен";
+    } catch (e) {
+        document.getElementById("goodsStatus").innerText = "Ошибка загрузки goods.csv";
     }
 }
 
-async function loadMasks() {
-    try {
-        const resp = await fetch(APP.masksFile);
-        if (resp.ok) MASKS = await resp.json();
-    } catch (e) { console.warn("Файл masks.json не найден, валидация по маскам отключена"); }
+// --- Управление заданием ---
+function startJob() {
+    STATE.jobActive = true;
+    STATE.scannedContainers.clear();
+    STATE.scannedSSCC.clear();
+    STATE.totalSSCCCount = 0;
+    updateSummaryUI();
+    
+    // Переход на вкладку сканирования
+    document.querySelector('[data-tab="scanTab"]').click();
+    setStatus("Задание начато. Сканируйте контейнер.");
 }
 
-// --- Утилиты ---
-function setStatus(text, color = "#2e8b57") {
-    const e = document.getElementById("status");
-    if (e) {
-        e.innerText = text;
-        e.style.color = color;
-    }
+// Пустышка для разбора кода
+function parseContainerCode(code) {
+    alert("Разбор кода: " + code);
+    return code; 
 }
 
-function toggleSSCCField(show) {
-    const el = document.getElementById("ssccFieldWrapper");
-    if (el) show ? el.classList.remove("hidden") : el.classList.add("hidden");
-}
-
-// --- Обработка событий ---
+// --- Обработка ввода ---
 document.getElementById("containerInput").addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
+    if (e.key === "Enter" && STATE.jobActive) {
         const code = e.target.value.trim();
-        const good = GOODS.get(code);
+        
+        if (STATE.scannedContainers.has(code)) {
+            setStatus(`ВНИМАНИЕ: Контейнер ${code} уже добавлен!`, "#c53929");
+            e.target.value = "";
+            return;
+        }
+
+        const goodId = parseContainerCode(code);
+        const good = GOODS.get(goodId);
 
         if (good) {
-            STATE.currentContainer = code;
-            STATE.currentGood = good;
-
-            if (good.askSSCC === "1") {
-                STATE.waitSSCC = true;
+            document.getElementById("foundedContainer").innerText = good.name;
+            if (good.askSSCC > 0) {
                 toggleSSCCField(true);
-                setStatus(`Товар: ${good.name}. Введите SSCC.`);
                 document.getElementById("ssccInput").focus();
             } else {
-                registerPallet(code, null);
-                e.target.value = "";
+                addContainer(code, null);
             }
         } else {
-            setStatus("Товар не найден!", "#c53929");
-            e.target.value = "";
+            setStatus("Товар не найден в справочнике", "#c53929");
         }
     }
 });
 
 document.getElementById("ssccInput").addEventListener("keypress", (e) => {
-    if (e.key === "Enter" && STATE.waitSSCC) {
-        const ssccCode = e.target.value.trim();
-        registerPallet(STATE.currentContainer, ssccCode);
+    if (e.key === "Enter") {
+        const sscc = e.target.value.trim();
         
-        STATE.waitSSCC = false;
+        if (STATE.scannedSSCC.has(sscc)) {
+            setStatus(`ПРЕДУПРЕЖДЕНИЕ: SSCC ${sscc} уже сканировался ранее`, "#e67e22");
+        }
+        
+        addContainer(document.getElementById("containerInput").value, sscc);
         toggleSSCCField(false);
         document.getElementById("ssccInput").value = "";
-        document.getElementById("containerInput").value = "";
         document.getElementById("containerInput").focus();
     }
 });
 
-function registerPallet(containerCode, ssccCode) {
-    PALLETS.set(containerCode, { containerCode, ssccCode, time: new Date().toLocaleTimeString() });
-    document.getElementById("palletCount").innerText = PALLETS.size;
-    setStatus(`Паллета ${containerCode} успешно зарегистрирована`);
+function addContainer(container, sscc) {
+    STATE.scannedContainers.add(container);
+    if (sscc) {
+        STATE.totalSSCCCount++;
+        STATE.scannedSSCC.add(sscc);
+    }
+    updateSummaryUI();
+    setStatus(`Контейнер ${container} успешно добавлен`);
+    document.getElementById("containerInput").value = "";
 }
+
+function updateSummaryUI() {
+    document.getElementById("palletCount").innerText = STATE.scannedContainers.size;
+    document.getElementById("summaryCount").innerText = STATE.scannedContainers.size;
+    document.getElementById("summarySSCC").innerText = `${STATE.totalSSCCCount} (уникальных: ${STATE.scannedSSCC.size})`;
+}
+
+function toggleSSCCField(show) {
+    const el = document.getElementById("ssccFieldWrapper");
+    show ? el.classList.remove("hidden") : el.classList.add("hidden");
+}
+
+function setStatus(text, color = "#2e8b57") {
+    const e = document.getElementById("status");
+    if (e) {
+        e.innerText = text; 
+        e.style.color = color;
+    }
+}
+
+init();
