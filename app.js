@@ -93,4 +93,23 @@ async function init() {
     document.getElementById("containerInput").focus();
 }
 
+function parseGoodsCSV(csv) {
+    GOODS.clear();
+    const rows = csv.replace(/\r/g, "").split("\n");
+
+    // Начинаем с 1, чтобы пропустить заголовок
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i].trim();
+        if (row === "") continue;
+
+        // РАЗДЕЛЯЕМ ПО ТОЧКЕ С ЗАПЯТОЙ
+        const cols = row.split(";"); 
+        
+        if (cols.length >= 3) {
+            const [id, name, askSSCC] = cols;
+            GOODS.set(id.trim(), { name: name.trim(), askSSCC: askSSCC.trim() });
+        }
+    }
+}
+
 init();
