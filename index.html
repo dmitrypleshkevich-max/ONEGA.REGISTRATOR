@@ -11,63 +11,64 @@
 <div id="app">
     <header>
         <div>
-            <h1>📦 Регистратор отгрузки Азбука Снеков</h1>
-            <span>Version 0.1</span>
+            <h1>📦 Регистратор паллет</h1>
+            <span>Version 0.2</span>
         </div>
-        <div id="goodsStatus">ошибка подключения к справочнику товаров</div>
+        <div id="goodsStatus">Загрузка...</div>
     </header>
 
     <nav>
         <button class="tabButton active" data-tab="scanTab">Сканирование</button>
         <button class="tabButton" data-tab="summaryTab">Сводка</button>
-        <button class="tabButton" data-tab="settingsTab">Настройки</button>
     </nav>
 
     <main>
-        <section id="scanTab" class="tab active">
+        <!-- Вкладка настроек/старта -->
+        <section id="settingsTab" class="tab active">
+            <div class="card">
+                <h2>Начало работы</h2>
+                <button onclick="startJob()" style="width:100%; padding:20px; font-size:20px;">Начать задание</button>
+            </div>
+        </section>
+
+        <section id="scanTab" class="tab">
             <div class="card">
                 <div class="field">
-                    <label>QR-код пак-листа</label>
+                    <label>Код контейнера</label>
                     <div class="inputRow">
                         <input id="containerInput" type="text" autocomplete="off">
-                        <button class="cameraButton">📷</button>
                     </div>
                 </div>
+                <div id="foundedContainer" style="font-weight:bold; margin-bottom:10px; color:#294c7a;"></div>
                 <div class="field hidden" id="ssccFieldWrapper">
-                    <label>Код-агрегат (SSCC)</label>
+                    <label>Код SSCC</label>
                     <div class="inputRow">
                         <input id="ssccInput" type="text" autocomplete="off">
-                        <button class="cameraButton">📷</button>
                     </div>
                 </div>
             </div>
-            <div class="card"><div id="status">Введите код контейнера</div></div>
-            <div class="card"><div class="stat">Паллет зарегистрировано: <strong id="palletCount">0</strong></div></div>
+            <div class="card"><div id="status">Нажмите "Начать задание"</div></div>
+            <div class="card"><div class="stat">Всего контейнеров: <strong id="palletCount">0</strong></div></div>
         </section>
 
         <section id="summaryTab" class="tab">
             <div class="card">
-                <div class="stat">Всего паллет: <strong id="summaryCount">0</strong></div>
+                <div class="stat">Всего контейнеров: <strong id="summaryCount">0</strong></div>
+                <div class="stat">SSCC: <strong id="summarySSCC">0</strong></div>
             </div>
-            <div class="card">
-                <table>
-                    <thead><tr><th>Наименование</th><th>Паллет</th><th>SSCC</th></tr></thead>
-                    <tbody id="summaryTable"><tr><td colspan="3">Нет данных</td></tr></tbody>
-                </table>
-            </div>
-        </section>
-
-        <section id="settingsTab" class="tab">
-            <div class="card">
-                <h2>Настройки</h2>
-                <p>goods.csv: <span id="settingsGoods">не загружен</span></p>
-            </div>
+            <button style="width:100%; background:#2e8b57;">Отправить</button>
         </section>
     </main>
 
-    <footer>Регистратор паллет © 2026</footer>
-</div>
-
-<script src="app.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Переключение вкладок (базовая логика)
+        document.querySelectorAll(".tabButton").forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+                document.getElementById(btn.dataset.tab).classList.add("active");
+            }
+        });
+    </script>
 </body>
 </html>
