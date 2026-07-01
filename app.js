@@ -90,5 +90,63 @@ function registerPallet(containerCode, ssccCode) {
     setStatus(`Паллета ${containerCode} зарегистрирована!`);
     document.getElementById("containerInput").focus();
 }
+// Функция для переключения видимости поля SSCC
+function toggleSSCCField(show) {
+    const ssccContainer = document.getElementById("ssccInput").parentElement.parentElement;
+    if (show) {
+        ssccContainer.classList.remove("hidden");
+        document.getElementById("ssccInput").focus();
+    } else {
+        ssccContainer.classList.add("hidden");
+    }
+}
 
+// Инициализация: скроем поле при загрузке
+document.addEventListener("DOMContentLoaded", () => {
+    toggleSSCCField(false);
+});
+
+// Слушатель для контейнера
+document.getElementById("containerInput").addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        const code = e.target.value.trim();
+        const good = GOODS.get(code); // Ищем товар в Map
+
+        if (good) {
+            STATE.currentContainer = code;
+            STATE.currentGood = good;
+
+            if (good.askSSCC === "1") {
+                STATE.waitSSCC = true;
+                toggleSSCCField(true); // Показываем поле
+                setStatus(`Товар: ${good.name}. Введите SSCC.`);
+            } else {
+                registerPallet(code, null);
+            }
+        } else {
+            setStatus("Товар не найден!", "#c53929");
+        }
+        e.target.value = "";
+    }
+});
+
+// Слушатель для SSCC
+document.getElementById("ssccInput").addEventListener("keypress", (e) => {
+    if (e.key === "Enter" && STATE.waitSSCC) {
+        const ssccCode = e.target.value.trim();
+        registerPallet(STATE.currentContainer, ssccCode);
+        
+        // Сбрасываем состояние
+        STATE.waitSSCC = false;
+        toggleSSCCField(false); // Скрываем поле обратно
+        e.target.value = "";
+    }
+});
+
+function registerPallet(containerCode, ssccCode) {
+    PALLETS.set(containerCode, { containerCode, ssccCode, time: new Date() });
+    updateCounters();
+    setStatus(`Паллета ${containerCode} зарегистрирована!`);
+    document.getElementById("containerInput").focus();
+}
 init();
