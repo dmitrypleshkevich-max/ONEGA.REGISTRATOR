@@ -54,6 +54,10 @@ function registerPallet(container, sscc) {
     PALLETS.set(container, { container, sscc });
     document.getElementById("palletCount").innerText = PALLETS.size;
     setStatus(`Паллета ${container} сохранена`);
+    
+    // Теперь очищаем поле контейнера после регистрации
+    document.getElementById("containerInput").value = "";
+    document.getElementById("containerInput").focus();
 }
 
 async function loadGoods() {
