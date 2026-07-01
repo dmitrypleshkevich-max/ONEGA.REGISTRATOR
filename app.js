@@ -1,116 +1,117 @@
-const APP = { goodsFile: "goods.csv", masksFile: "masks.json" };
+const APP = { goodsFile: "goods.csv", structureFile: "packing.json" };
 const STATE = { waitSSCC: false, currentContainer: null };
-const GOODS = new Map();
-const PALLETS = new Map();
-let MASKS = null;
+const GOODS = new Map(); // ID -> {name, qty, askSSCC}
+const PALLETS = new Map(); // ContainerCode -> {goodId, goodName, qty, ssccCode}
+let PACK_STRUCTURE = null; // Правила парсинга
 
 function setStatus(text, color = "#2e8b57") {
     const e = document.getElementById("status");
     if (e) { e.innerText = text; e.style.color = color; }
 }
 
-// Восстановленная функция парсинга (используем логику из app(3).js)
-function parseBarcode(code) {
-    // Если есть специфическая логика выделения ID, она здесь
-    // Например: return code.length > 10 ? { ItemID: code.substring(0, 5) } : { ItemID: code };
-    return { ItemID: code }; 
+// Парсинг контейнера по правилам из JSON
+function parseBarcode(fullCode) {
+    if (!PACK_STRUCTURE) return { ItemID: fullCode, Qty: 0 };
+
+    for (const key in PACK_STRUCTURE) {
+        const rule = PACK_STRUCTURE[key];
+        if (rule.prefix && fullCode.startsWith(rule.prefix)) {
+            const id = fullCode.substring(rule.prefix.length, rule.prefix.length + rule.length);
+            return { ItemID: id, Qty: rule.qty || 0 };
+        }
+    }
+    return { ItemID: fullCode, Qty: 0 };
 }
 
-function validateInput(code, type) {
-    if (!MASKS || !MASKS[type]) return true;
-    const regex = new RegExp(MASKS[type].pattern);
-    return regex.test(code);
-}
-
-function toggleSSCCField(show) {
-    const el = document.getElementById("ssccFieldWrapper");
-    if (el) el.classList.toggle("hidden", !show);
-}
-
+// Обновление сводной таблицы
 function updateSummaryTable() {
-    const summary = {};
+    const summary = {}; // name -> {pallets: 0, totalQty: 0}
+    let totalSSCCCount = 0;
     const uniqueSSCC = new Set();
-    let totalSSCC = 0;
 
     PALLETS.forEach(p => {
-        if (!summary[p.goodId]) summary[p.goodId] = { name: p.goodName, count: 0, totalQty: 0 };
-        summary[p.goodId].count++;
-        summary[p.goodId].totalQty += p.qty;
+        if (!summary[p.goodName]) summary[p.goodName] = { pallets: 0, totalQty: 0 };
+        summary[p.goodName].pallets++;
+        summary[p.goodName].totalQty += p.qty;
+        
         if (p.ssccCode) {
-            totalSSCC++;
+            totalSSCCCount++;
             uniqueSSCC.add(p.ssccCode);
         }
     });
 
-    document.getElementById("summaryCount").innerText = PALLETS.size;
-    document.getElementById("summarySSCC").innerText = `${uniqueSSCC.size}/${totalSSCC}`;
-
     const tbody = document.getElementById("summaryTable");
     tbody.innerHTML = PALLETS.size === 0 ? '<tr><td colspan="3">Нет данных</td></tr>' : "";
     
-    for (let id in summary) {
-        tbody.innerHTML += `<tr><td>${summary[id].name}</td><td>${summary[id].count}</td><td>${summary[id].totalQty} штук</td></tr>`;
+    for (const name in summary) {
+        tbody.innerHTML += `<tr><td>${name}</td><td>${summary[name].pallets}</td><td>${summary[name].totalQty}</td></tr>`;
     }
+
+    document.getElementById("summaryCount").innerText = PALLETS.size;
+    document.getElementById("summarySSCC").innerText = `Всего: ${totalSSCCCount} | Уник: ${uniqueSSCC.size}`;
 }
 
-function registerPallet(containerCode, ssccCode) {
-    const data = parseBarcode(containerCode);
-    const good = GOODS.get(data.ItemID);
-    if (good) {
-        PALLETS.set(containerCode + Date.now(), { goodId: data.ItemID, goodName: good.name, qty: good.qty, ssccCode: ssccCode });
-        updateSummaryTable();
-        setStatus(`Добавлено: ${good.name}`);
-        document.getElementById("containerInput").value = "";
-        document.getElementById("ssccInput").value = "";
-        document.getElementById("foundedContainer").innerText = "";
-    }
+function registerPallet(containerCode, ssccCode, goodId, goodName, qty) {
+    PALLETS.set(containerCode, { goodId, goodName, qty, ssccCode });
+    updateSummaryTable();
+    document.getElementById("palletCount").innerText = PALLETS.size;
+    
+    setStatus(`Зарегистрировано: ${goodName}`);
+    document.getElementById("containerInput").value = "";
+    document.getElementById("ssccInput").value = "";
+    document.getElementById("foundedContainer").innerText = "";
+    document.getElementById("containerInput").focus();
 }
 
 // Загрузка данных
 async function loadData() {
     try {
-        // Загрузка GOODS.csv
         const resGoods = await fetch(APP.goodsFile);
         const text = await resGoods.text();
         text.split('\n').forEach(line => {
             const [id, name, qty, askSSCC] = line.split(';');
-            if (id) GOODS.set(id.trim(), { name, qty: parseInt(qty), askSSCC: askSSCC?.trim() });
+            if (id) GOODS.set(id.trim(), { name: name.trim(), qty: parseInt(qty), askSSCC: askSSCC?.trim() });
         });
 
-        // Загрузка MASKS.json
-        const resMasks = await fetch(APP.masksFile);
-        MASKS = await resMasks.json();
+        const resPack = await fetch(APP.structureFile);
+        PACK_STRUCTURE = await resPack.json();
         
-        setStatus("Данные загружены. Сканируйте контейнер.");
+        document.getElementById("goodsStatus").innerText = "Данные загружены";
     } catch (err) {
-        setStatus("Ошибка загрузки данных!", "#c53929");
+        document.getElementById("goodsStatus").innerText = "Ошибка загрузки!";
     }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
-    document.getElementById("jobNameInput").focus();
 
     document.getElementById("containerInput").addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
-            const val = e.target.value.trim();
-            const data = parseBarcode(val);
+            const fullCode = e.target.value.trim();
+            
+            // Проверка на уникальность контейнера
+            if (PALLETS.has(fullCode)) {
+                setStatus(`Ошибка: Контейнер ${fullCode} уже отсканирован!`, "#c53929");
+                e.target.value = "";
+                return;
+            }
+
+            const data = parseBarcode(fullCode);
             const good = GOODS.get(data.ItemID);
 
             if (good) {
-                document.getElementById("foundedContainer").style.color = "#f1c40f";
-                document.getElementById("foundedContainer").innerText = `Товар: ${good.name} | Кол-во: ${good.qty}`;
+                document.getElementById("foundedContainer").innerText = `Товар: ${good.name} | Кол-во: ${data.Qty || good.qty}`;
                 
                 if (good.askSSCC === "1") {
-                    STATE.currentContainer = val;
+                    STATE.currentContainer = fullCode;
                     STATE.waitSSCC = true;
-                    toggleSSCCField(true);
+                    document.getElementById("ssccFieldWrapper").classList.remove("hidden");
                     document.getElementById("ssccInput").focus();
                 } else {
-                    registerPallet(val, null);
+                    registerPallet(fullCode, null, data.ItemID, good.name, data.Qty || good.qty);
                 }
             } else {
-                setStatus(`Товар с ID '${data.ItemID}' не найден!`, "#c53929");
+                setStatus(`Товар ID ${data.ItemID} не найден!`, "#c53929");
             }
         }
     });
@@ -118,13 +119,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("ssccInput").addEventListener("keypress", (e) => {
         if (e.key === "Enter" && STATE.waitSSCC) {
             const ssccCode = e.target.value.trim();
-            if (validateInput(ssccCode, "sscc")) {
-                registerPallet(STATE.currentContainer, ssccCode);
-                STATE.waitSSCC = false;
-                toggleSSCCField(false);
-            } else {
-                setStatus(MASKS?.sscc?.errorMessage || "Ошибка SSCC!", "#c53929");
-            }
+            const good = GOODS.get(parseBarcode(STATE.currentContainer).ItemID);
+            registerPallet(STATE.currentContainer, ssccCode, good.id, good.name, good.qty);
+            STATE.waitSSCC = false;
+            document.getElementById("ssccFieldWrapper").classList.add("hidden");
         }
     });
 });
