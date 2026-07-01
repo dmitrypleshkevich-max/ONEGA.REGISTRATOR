@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Регистратор паллет</title>
+
+<style>
+
+/**********************************************************************
+*
+*  Регистратор паллет
+*  Version 0.1
+*
+**********************************************************************/
+
+:root
+{
+    --bg:#f5f5f5;
+    --panel:#ffffff;
+    --border:#cfcfcf;
+    --header:#294c7a;
+    --header-text:white;
+
+    --button:#2d74da;
+    --button-hover:#205eb6;
+
+    --success:#2e8b57;
+    --warning:#d98d00;
+    --error:#c53929;
+
+    --text:#222;
+}
+
+*
+{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Segoe UI,Arial,sans-serif;
+}
+
+body
+{
+    background:var(--bg);
+    color:var(--text);
+}
+
+#app
+{
+    max-width:1000px;
+    margin:auto;
+    min-height:100vh;
+
+    display:flex;
+    flex-direction:column;
+}
+
+header
+{
+    background:var(--header);
+    color:white;
+
+    padding:16px;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+header h1
+{
+    font-size:24px;
+}
+
+header span
+{
+    font-size:14px;
+    opacity:.8;
+}
+
+nav
+{
+    display:flex;
+    background:#e8e8e8;
+    border-bottom:1px solid var(--border);
+}
+
+.tabButton
+{
+    flex:1;
+
+    padding:14px;
+
+    border:none;
+    background:#e8e8e8;
+
+    cursor:pointer;
+
+    font-size:16px;
+}
+
+.tabButton.active
+{
+    background:white;
+    font-weight:bold;
+    border-bottom:3px solid var(--button);
+}
+
+main
+{
+    flex:1;
+    padding:20px;
+}
+
+.tab
+{
+    display:none;
+}
+
+.tab.active
+{
+    display:block;
+}
+
+.card
+{
+    background:white;
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:18px;
+    margin-bottom:20px;
+}
+
+.field
+{
+    margin-bottom:18px;
+}
+
+.field label
+{
+    display:block;
+    margin-bottom:6px;
+    font-weight:bold;
+}
+
+.inputRow
+{
+    display:flex;
+    gap:10px;
+}
+
+.inputRow input
+{
+    flex:1;
+    padding:12px;
+    font-size:18px;
+}
+
+.cameraButton
+{
+    width:60px;
+    font-size:24px;
+}
+
+button
+{
+    padding:12px 18px;
+
+    background:var(--button);
+    color:white;
+
+    border:none;
+
+    cursor:pointer;
+
+    font-size:16px;
+}
+
+button:hover
+{
+    background:var(--button-hover);
+}
+
+#status
+{
+    font-size:20px;
+    font-weight:bold;
+    color:var(--success);
+}
+
+table
+{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th
+{
+    background:#ececec;
+}
+
+td,th
+{
+    padding:10px;
+    border:1px solid #d0d0d0;
+    text-align:left;
+}
+
+.stat
+{
+    font-size:22px;
+    margin-bottom:10px;
+}
+
+footer
+{
+    padding:10px;
+    text-align:center;
+    color:#888;
+    font-size:12px;
+}
+
+@media (max-width:700px)
+{
+
+header h1
+{
+    font-size:20px;
+}
+
+.inputRow
+{
+    flex-direction:column;
+}
+
+.cameraButton
+{
+    width:100%;
+}
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="app">
+
+<header>
+
+<div>
+
+<h1>📦 Регистратор паллет</h1>
+
+<span>Version 0.1</span>
+
+</div>
+
+<div id="goodsStatus">
+
+goods.csv не загружен
+
+</div>
+
+</header>
+
+<nav>
+
+<button class="tabButton active" data-tab="scanTab">
+Сканирование
+</button>
+
+<button class="tabButton" data-tab="summaryTab">
+Сводка
+</button>
+
+<button class="tabButton" data-tab="settingsTab">
+Настройки
+</button>
+
+</nav>
+
+<main>
+
+<!-- ====================================================== -->
+<!-- СКАНИРОВАНИЕ -->
+<!-- ====================================================== -->
+
+<section id="scanTab" class="tab active">
+
+<div class="card">
+
+<div class="field">
+
+<label>
+
+Код контейнера
+
+</label>
+
+<div class="inputRow">
+
+<input
+id="containerInput"
+type="text"
+autocomplete="off">
+
+<button class="cameraButton">
+
+📷
+
+</button>
+
+</div>
+
+</div>
+
+<div class="field">
+
+<label>
+
+Код SSCC
+
+</label>
+
+<div class="inputRow">
+
+<input
+id="ssccInput"
+type="text"
+autocomplete="off">
+
+<button class="cameraButton">
+
+📷
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div id="status">
+
+Введите код контейнера
+
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="stat">
+
+Паллет зарегистрировано:
+
+<strong id="palletCount">
+
+0
+
+</strong>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- ====================================================== -->
+<!-- СВОДКА -->
+<!-- ====================================================== -->
+
+<section id="summaryTab" class="tab">
+
+<div class="card">
+
+<div class="stat">
+
+Всего паллет:
+<strong id="summaryCount">0</strong>
+
+</div>
+
+<div class="stat">
+
+Уникальных SSCC:
+<strong id="summarySSCC">0</strong>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Наименование</th>
+
+<th>Паллет</th>
+
+<th>SSCC</th>
+
+</tr>
+
+</thead>
+
+<tbody id="summaryTable">
+
+<tr>
+
+<td colspan="3">
+
+Нет данных
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<button>
+
+Отправить данные
+
+</button>
+
+</section>
+
+<!-- ====================================================== -->
+<!-- НАСТРОЙКИ -->
+<!-- ====================================================== -->
+
+<section id="settingsTab" class="tab">
+
+<div class="card">
+
+<h2>
+
+Настройки
+
+</h2>
+
+<br>
+
+<p>
+
+Версия приложения: 0.1
+
+</p>
+
+<p>
+
+goods.csv:
+<span id="settingsGoods">
+
+не загружен
+
+</span>
+
+</p>
+
+<p>
+
+Endpoint:
+
+не настроен
+
+</p>
+
+</div>
+
+</section>
+
+</main>
+
+<footer>
+
+Регистратор паллет © 2026
+
+</footer>
+
+</div>
+
+<script>
+
+/**********************************************************************
+*
+* Конфигурация
+*
+**********************************************************************/
+
+/**********************************************************************
+ *
+ * Конфигурация приложения
+ *
+ **********************************************************************/
+
+const APP =
+{
+    version: "0.1",
+    goodsFile: "goods.csv",
+
+    debug: true
+};
+
+/**********************************************************************
+ *
+ * Глобальное состояние
+ *
+ **********************************************************************/
+
+const STATE =
+{
+    waitSSCC: false,
+
+    currentContainer: null,
+
+    currentGood: null
+};
+
+/**********************************************************************
+ *
+ * Справочник товаров
+ *
+ * key = GOOD_ID
+ *
+ **********************************************************************/
+
+const GOODS = new Map();
+
+/**********************************************************************
+ *
+ * Зарегистрированные паллеты
+ *
+ * key = ContainerCode
+ *
+ **********************************************************************/
+
+const PALLETS = new Map();
+
+/**********************************************************************
+*
+* Переключение вкладок
+*
+**********************************************************************/
+/**********************************************************************
+ *
+ * UI
+ *
+ **********************************************************************/
+
+function setStatus(text, color = "#2e8b57")
+{
+    const e = document.getElementById("status");
+
+    e.innerText = text;
+
+    e.style.color = color;
+}
+
+function updateCounters()
+{
+    document.getElementById("palletCount").innerText =
+        PALLETS.size;
+
+    document.getElementById("summaryCount").innerText =
+        PALLETS.size;
+}
+document
+.querySelectorAll(".tabButton")
+.forEach(button=>
+{
+
+    button.onclick=()=>
+    {
+
+        document
+        .querySelectorAll(".tabButton")
+        .forEach(b=>b.classList.remove("active"));
+
+        document
+        .querySelectorAll(".tab")
+        .forEach(t=>t.classList.remove("active"));
+
+        button.classList.add("active");
+
+        document
+        .getElementById(button.dataset.tab)
+        .classList.add("active");
+
+    };
+
+});
+
+/**********************************************************************
+ *
+ * Старт приложения
+ *
+ **********************************************************************/
+
+async function init()
+{
+    console.log("Регистратор паллет",APP.version);
+
+    await loadGoods();
+
+    updateCounters();
+
+    document
+        .getElementById("containerInput")
+        .focus();
+}
+
+init();
+
+/**********************************************************************
+ *
+ * UI
+ *
+ **********************************************************************/
+
+function setStatus(text, color = "#2e8b57")
+{
+    const e = document.getElementById("status");
+
+    e.innerText = text;
+
+    e.style.color = color;
+}
+
+function updateCounters()
+{
+    document.getElementById("palletCount").innerText =
+        PALLETS.size;
+
+    document.getElementById("summaryCount").innerText =
+        PALLETS.size;
+}
+
+/**********************************************************************
+ *
+ * Загрузка goods.csv
+ *
+ **********************************************************************/
+
+async function loadGoods()
+{
+    try
+    {
+        const response =
+            await fetch(APP.goodsFile);
+
+        if (!response.ok)
+            throw new Error("goods.csv не найден");
+
+        const text =
+            await response.text();
+
+        parseGoodsCSV(text);
+
+        document.getElementById("goodsStatus").innerText =
+            "goods.csv загружен";
+
+        document.getElementById("settingsGoods").innerText =
+            GOODS.size + " товаров";
+
+        console.log("Товаров:", GOODS.size);
+
+    }
+    catch(ex)
+    {
+        console.error(ex);
+
+        document.getElementById("goodsStatus").innerText =
+            "Ошибка загрузки";
+
+        setStatus(
+            "Ошибка загрузки goods.csv",
+            "#c53929"
+        );
+    }
+
+}
+/**********************************************************************
+ *
+ * Разбор CSV
+ *
+ **********************************************************************/
+
+function parseGoodsCSV(csv)
+{
+    GOODS.clear();
+
+    const rows =
+        csv
+        .replace(/\r/g,"")
+        .split("\n");
+
+    for(let i=1;i<rows.length;i++)
+    {
+        const row =
+            rows[i].trim();
+
+        if(row==="")
+            continue;
+
+        const c =
+            row.split(";");
+
+        if(c.length<3)
+            continue;
+
+        GOODS.set(c[0],
+        {
+            id:c[0],
+            name:c[1],
+            askSSCC:c[2]
+        });
+
+    }
+
+}
+
+</script>
+
+</body>
+
+</html>
