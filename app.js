@@ -56,4 +56,39 @@ async function init() {
     document.getElementById("containerInput").focus();
 }
 
+function findGood(code) {
+    return GOODS.get(code) || null;
+}
+
+// Слушатель для поля ввода контейнера
+document.getElementById("containerInput").addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        const code = e.target.value.trim();
+        const good = findGood(code);
+
+        if (good) {
+            STATE.currentContainer = code;
+            STATE.currentGood = good;
+            
+            if (good.askSSCC === "1") {
+                STATE.waitSSCC = true;
+                setStatus(`Товар: ${good.name}. Введите SSCC.`);
+                document.getElementById("ssccInput").focus();
+            } else {
+                registerPallet(code, null);
+            }
+        } else {
+            setStatus("Товар не найден!", "#c53929");
+        }
+        e.target.value = "";
+    }
+});
+
+function registerPallet(containerCode, ssccCode) {
+    PALLETS.set(containerCode, { containerCode, ssccCode, time: new Date() });
+    updateCounters();
+    setStatus(`Паллета ${containerCode} зарегистрирована!`);
+    document.getElementById("containerInput").focus();
+}
+
 init();
