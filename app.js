@@ -9,13 +9,21 @@ function setStatus(text, color = "#2e8b57") {
 }
 
 function parseBarcode(fullCode) {
-    if (!PACK_STRUCTURE || !PACK_STRUCTURE.fields) return { ItemID: fullCode, Qty: 0 };
+    if (!PACK_STRUCTURE || !PACK_STRUCTURE.fields) {
+        return { ItemID: fullCode, Qty: 0 };
+    }
+
     let parsed = { ItemID: "", Qty: 0 };
-    PACK_STRUCTURE.fields.forEach(f => {
-        const val = fullCode.substring(f.start, f.end).trim();
-        if (f.name === "ItemID") parsed.ItemID = val;
-        if (f.name === "Qty") parsed.Qty = parseInt(val) || 0;
+
+    PACK_STRUCTURE.fields.forEach(field => {
+        // Добавляем +1 к end, так как в вашем JSON end включительный
+        // slice(start, end + 1) корректно возьмет символы от start до end включительно
+        const value = fullCode.slice(field.start, field.end + 1).trim();
+        
+        if (field.name === "ItemID") parsed.ItemID = value;
+        if (field.name === "Qty") parsed.Qty = parseInt(value) || 0;
     });
+
     return parsed;
 }
 
