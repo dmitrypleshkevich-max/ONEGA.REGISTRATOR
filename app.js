@@ -1,3 +1,21 @@
+// Добавьте это в самое начало файла app.js, чтобы функции были глобально видны
+window.startJob = function() {
+    STATE.jobActive = true;
+    STATE.scannedContainers.clear();
+    STATE.scannedSSCC.clear();
+    STATE.totalSSCCCount = 0;
+    updateSummaryUI();
+    
+    // Переход на вкладку сканирования
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tabButton").forEach(b => b.classList.remove("active"));
+    
+    document.getElementById("scanTab").classList.add("active");
+    document.querySelector('[data-tab="scanTab"]').classList.add("active");
+    
+    setStatus("Задание начато. Сканируйте контейнер.");
+};
+
 const GOODS = new Map();
 const STATE = {
     jobActive: false,
