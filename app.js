@@ -114,38 +114,28 @@ function updateSummaryTable() {
 // --- Обработчики событий ---
 document.getElementById("containerInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
-        const code = e.target.value.trim();
-        const data = parseBarcode(code);
-        const goodId = data ? data.ItemID : code;
+        const fullCode = e.target.value.trim();
+        
+        // 1. Сначала парсим данные по структуре
+        const data = parseBarcode(fullCode); 
+        
+        // 2. Берем ID из распарсенных данных
+        const goodId = data ? data.ItemID : fullCode;
+        
+        // 3. Ищем товар по ID
         const good = GOODS.get(goodId);
 
         if (good) {
-            STATE.currentContainer = code;
+            STATE.currentContainer = fullCode;
             if (good.askSSCC === "1") {
-                STATE.waitSSCC = true;
-                toggleSSCCField(true);
-                setStatus(`Товар: ${good.name}. Введите SSCC.`);
-                document.getElementById("ssccInput").focus();
+                // ... (ваша логика работы с SSCC)
             } else {
-                registerPallet(code, null);
+                registerPallet(fullCode, null);
             }
         } else {
-            setStatus("Товар не найден!", "#c53929");
+            setStatus(`Товар с ID ${goodId} не найден!`, "#c53929");
             e.target.value = "";
         }
-    }
-});
-
-document.getElementById("ssccInput").addEventListener("keypress", (e) => {
-    if (e.key === "Enter" && STATE.waitSSCC) {
-        const ssccCode = e.target.value.trim();
-        if (!validateInput(ssccCode, "sscc")) {
-            setStatus(MASKS.sscc.errorMessage, "#c53929");
-            return;
-        }
-        registerPallet(STATE.currentContainer, ssccCode);
-        STATE.waitSSCC = false;
-        toggleSSCCField(false);
     }
 });
 
