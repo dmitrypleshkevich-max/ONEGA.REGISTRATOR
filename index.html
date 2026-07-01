@@ -33,7 +33,7 @@
                         <button class="cameraButton">📷</button>
                     </div>
                 </div>
-                <div class="field">
+                <div class="field hidden" id="ssccFieldWrapper">
                     <label>Код SSCC</label>
                     <div class="inputRow">
                         <input id="ssccInput" type="text" autocomplete="off">
@@ -48,7 +48,6 @@
         <section id="summaryTab" class="tab">
             <div class="card">
                 <div class="stat">Всего паллет: <strong id="summaryCount">0</strong></div>
-                <div class="stat">Уникальных SSCC: <strong id="summarySSCC">0</strong></div>
             </div>
             <div class="card">
                 <table>
@@ -56,15 +55,12 @@
                     <tbody id="summaryTable"><tr><td colspan="3">Нет данных</td></tr></tbody>
                 </table>
             </div>
-            <button>Отправить данные</button>
         </section>
 
         <section id="settingsTab" class="tab">
             <div class="card">
                 <h2>Настройки</h2>
-                <p>Версия приложения: 0.1</p>
                 <p>goods.csv: <span id="settingsGoods">не загружен</span></p>
-                <p>Endpoint: не настроен</p>
             </div>
         </section>
     </main>
