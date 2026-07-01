@@ -1,50 +1,82 @@
 const APP = { goodsFile: "goods.csv", masksFile: "masks.json" };
-const STATE = { waitSSCC: false, currentContainer: null };
+const STATE = { waitSSCC: false, currentContainer: null, currentGood: null };
 const GOODS = new Map();
 const PALLETS = new Map();
-let MASKS = null; // Переменная для хранения масок
+let MASKS = null;
+
+// --- Инициализация ---
+document.addEventListener("DOMContentLoaded", () => {
+    init();
+});
+
+async function init() {
+    await loadGoods();
+    await loadMasks();
+}
+
+// --- Загрузка данных ---
+async function loadGoods() {
+    try {
+        const response = await fetch(APP.goodsFile);
+        if (!response.ok) throw new Error("Файл goods.csv не найден");
+        const text = await response.text();
+        parseGoodsCSV(text);
+        document.getElementById("goodsStatus").innerText = "goods.csv загружен";
+        document.getElementById("settingsGoods").innerText = GOODS.size + " товаров";
+    } catch (ex) {
+        console.error(ex);
+        document.getElementById("goodsStatus").innerText = "Ошибка загрузки goods.csv";
+        setStatus("Ошибка загрузки справочника товаров", "#c53929");
+    }
+}
+
+function parseGoodsCSV(csv) {
+    GOODS.clear();
+    const rows = csv.replace(/\r/g, "").split("\n");
+    // Пропускаем заголовок (i=1)
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i].trim();
+        if (row === "") continue;
+        
+        // Разделяем по точке с запятой
+        const [id, name, askSSCC] = row.split(";");
+        if (id && name) {
+            GOODS.set(id.trim(), { name: name.trim(), askSSCC: askSSCC.trim() });
+        }
+    }
+}
+
+async function loadMasks() {
+    try {
+        const resp = await fetch(APP.masksFile);
+        if (resp.ok) MASKS = await resp.json();
+    } catch (e) { console.warn("Файл masks.json не найден, валидация по маскам отключена"); }
+}
 
 // --- Утилиты ---
 function setStatus(text, color = "#2e8b57") {
     const e = document.getElementById("status");
-    e.innerText = text; e.style.color = color;
+    if (e) {
+        e.innerText = text;
+        e.style.color = color;
+    }
 }
 
 function toggleSSCCField(show) {
     const el = document.getElementById("ssccFieldWrapper");
-    if (show) el.classList.remove("hidden");
-    else el.classList.add("hidden");
+    if (el) show ? el.classList.remove("hidden") : el.classList.add("hidden");
 }
 
-// --- Загрузка данных ---
-async function loadMasks() {
-    try {
-        const resp = await fetch(APP.masksFile);
-        MASKS = await resp.json();
-    } catch (e) { console.error("Не удалось загрузить masks.json", e); }
-}
-
-// --- Логика проверки масок ---
-function validateInput(value, type) {
-    if (!MASKS || !MASKS[type] || !MASKS[type].masks) return true;
-    return MASKS[type].masks.some(item => new RegExp(item.regex).test(value));
-}
-
-// --- Обработка ввода контейнера ---
+// --- Обработка событий ---
 document.getElementById("containerInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
         const code = e.target.value.trim();
-
-        // Проверка по маске
-        if (!validateInput(code, "container")) {
-            setStatus(MASKS.container.errorMessage, "#c53929");
-            return;
-        }
-
-        const good = GOODS.get(code); // Ищем товар как есть
+        const good = GOODS.get(code);
 
         if (good) {
             STATE.currentContainer = code;
+            STATE.currentGood = good;
+
             if (good.askSSCC === "1") {
                 STATE.waitSSCC = true;
                 toggleSSCCField(true);
@@ -52,6 +84,7 @@ document.getElementById("containerInput").addEventListener("keypress", (e) => {
                 document.getElementById("ssccInput").focus();
             } else {
                 registerPallet(code, null);
+                e.target.value = "";
             }
         } else {
             setStatus("Товар не найден!", "#c53929");
@@ -60,20 +93,16 @@ document.getElementById("containerInput").addEventListener("keypress", (e) => {
     }
 });
 
-// --- Обработка ввода SSCC ---
 document.getElementById("ssccInput").addEventListener("keypress", (e) => {
     if (e.key === "Enter" && STATE.waitSSCC) {
         const ssccCode = e.target.value.trim();
-
-        // Проверка по маске
-        if (!validateInput(ssccCode, "sscc")) {
-            setStatus(MASKS.sscc.errorMessage, "#c53929");
-            return;
-        }
-
         registerPallet(STATE.currentContainer, ssccCode);
+        
         STATE.waitSSCC = false;
         toggleSSCCField(false);
+        document.getElementById("ssccInput").value = "";
+        document.getElementById("containerInput").value = "";
+        document.getElementById("containerInput").focus();
     }
 });
 
@@ -81,35 +110,4 @@ function registerPallet(containerCode, ssccCode) {
     PALLETS.set(containerCode, { containerCode, ssccCode, time: new Date().toLocaleTimeString() });
     document.getElementById("palletCount").innerText = PALLETS.size;
     setStatus(`Паллета ${containerCode} успешно зарегистрирована`);
-    document.getElementById("containerInput").value = "";
-    document.getElementById("ssccInput").value = "";
-    document.getElementById("containerInput").focus();
 }
-
-// --- Инициализация ---
-async function init() {
-    await loadGoods();
-    await loadMasks(); 
-    document.getElementById("containerInput").focus();
-}
-
-function parseGoodsCSV(csv) {
-    GOODS.clear();
-    const rows = csv.replace(/\r/g, "").split("\n");
-
-    // Начинаем с 1, чтобы пропустить заголовок
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i].trim();
-        if (row === "") continue;
-
-        // РАЗДЕЛЯЕМ ПО ТОЧКЕ С ЗАПЯТОЙ
-        const cols = row.split(";"); 
-        
-        if (cols.length >= 3) {
-            const [id, name, askSSCC] = cols;
-            GOODS.set(id.trim(), { name: name.trim(), askSSCC: askSSCC.trim() });
-        }
-    }
-}
-
-init();
