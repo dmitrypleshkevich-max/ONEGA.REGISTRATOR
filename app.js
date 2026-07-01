@@ -73,9 +73,45 @@ loadGoods();
 async function init() {
     await loadGoods();
     updateCounters();
-    
+    await loadMasks();
     // Принудительно скрываем поле при старте
     document.getElementById("ssccFieldWrapper").classList.add("hidden");
     
     document.getElementById("containerInput").focus();
 }
+
+// Добавляем переменную для масок
+let MASKS = null;
+
+// Загрузка файла масок
+async function loadMasks() {
+    try {
+        const resp = await fetch("masks.json");
+        MASKS = await resp.json();
+    } catch (e) {
+        console.error("Не удалось загрузить masks.json", e);
+    }
+}
+
+// Функция проверки по маске
+function validateInput(value, type) {
+    if (!MASKS || !MASKS[type]) return true; // Если файла нет — пропускаем проверку
+    const regex = new RegExp(MASKS[type].mask);
+    return regex.test(value);
+}
+
+// Пример использования в слушателе контейнера
+document.getElementById("containerInput").addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        const code = e.target.value.trim();
+
+        // Проверка по маске из JSON
+        if (!validateInput(code, "container")) {
+            setStatus(MASKS.container.errorMessage, "#c53929");
+            return; // Прерываем выполнение, если формат неверный
+        }
+
+        const good = GOODS.get(code);
+        // ... (твоя логика дальше)
+    }
+});
