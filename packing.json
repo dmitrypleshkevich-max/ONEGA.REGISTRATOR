@@ -1,8 +1,8 @@
 {
-  "totalLength": { "min": 20, "max": 50 },
+  "totalLength": { "min": 5, "max": 50 },
   "fields": [
-    { "name": "ItemID", "start": 0, "end": 4 },
-    { "name": "Qty", "start": 5, "end": 8 },
+    { "name": "ItemID", "start": 0, "end": 2 },
+    { "name": "Qty", "start": 4, "end": 7 },
     { "name": "Date", "start": 20, "end": 27 },
     { "name": "Batch", "start": 30, "end": 35 }
   ]
