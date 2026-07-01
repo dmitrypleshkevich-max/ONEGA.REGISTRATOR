@@ -61,3 +61,13 @@ async function loadGoods() {
     });
 }
 loadGoods();
+
+async function init() {
+    await loadGoods();
+    updateCounters();
+    
+    // Принудительно скрываем поле при старте
+    document.getElementById("ssccFieldWrapper").classList.add("hidden");
+    
+    document.getElementById("containerInput").focus();
+}
