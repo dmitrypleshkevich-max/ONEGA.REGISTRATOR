@@ -1,0 +1,10 @@
+{
+  "container": {
+    "mask": "^[A-Z]{3}-\\d{5}$",
+    "errorMessage": "Формат контейнера: ABC-12345"
+  },
+  "sscc": {
+    "mask": "^\\d{18}$",
+    "errorMessage": "SSCC должен состоять из 18 цифр"
+  }
+}
