@@ -40,6 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
         t.style.display = t.classList.contains('active') ? 'block' : 'none';
     });
 
+    document.getElementById("sendBtn").addEventListener("click", () => {
+        alert("Отправляем JSON/API...");
+    });
+
     loadData();
 
     // 2. Обработчик сканирования контейнера
@@ -129,13 +133,20 @@ function savePallet(containerCode, itemId, name, qty, sscc) {
 function updateSummaryTable() {
     const summary = {};
     let totalSSCCCount = 0;
+    let totalGrandQty = 0; 
     const uniqueSSCC = new Set();
     
     PALLETS.forEach(p => {
         if (!summary[p.goodName]) summary[p.goodName] = { pallets: 0, totalQty: 0 };
         summary[p.goodName].pallets++;
         summary[p.goodName].totalQty += p.qty;
-        if (p.ssccCode) { totalSSCCCount++; uniqueSSCC.add(p.ssccCode); }
+        
+        totalGrandQty += p.qty;
+        
+        if (p.ssccCode) { 
+            totalSSCCCount++; 
+            uniqueSSCC.add(p.ssccCode); 
+        }
     });
     
     const tbody = document.getElementById("summaryTable");
@@ -147,6 +158,8 @@ function updateSummaryTable() {
             tbody.innerHTML += `<tr><td>${name}</td><td>${summary[name].pallets}</td><td>${summary[name].totalQty}</td></tr>`;
         }
     }
+    
     document.getElementById("summaryCount").innerText = PALLETS.size;
     document.getElementById("summarySSCC").innerText = `${uniqueSSCC.size}/${totalSSCCCount}`;
+    document.getElementById("summaryTotalQty").innerText = totalGrandQty;
 }
