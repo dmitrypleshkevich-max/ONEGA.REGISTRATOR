@@ -88,7 +88,7 @@ async function loadData() {
         const resGoods = await fetch(APP.goodsFile);
         const text = await resGoods.text();
         text.split('\n').forEach(line => {
-            const [id, name, qty, askSSCC] = line.split(';');
+            const [id, name, askSSCC] = line.split(';').map(item => item.trim());
             if (id) GOODS.set(id.trim(), { name: name.trim(), qty: parseInt(qty), askSSCC: askSSCC?.trim() });
         });
         const resPack = await fetch(APP.structureFile);
