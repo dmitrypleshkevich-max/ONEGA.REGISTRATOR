@@ -41,8 +41,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("sendBtn").addEventListener("click", () => {
-        alert("Отправляем JSON/API...");
+    const jobName = document.getElementById("jobNameInput").value.trim();
+    
+    // Формируем массив из PALLETS
+    const palletsArray = [];
+    PALLETS.forEach((data, rawCode) => {
+        // Получаем товар из справочника, чтобы подтянуть имя и ASK_SSCC
+        const good = GOODS.get(data.itemId);
+        
+        palletsArray.push({
+            RAW: rawCode,
+            GoodId: data.itemId,
+            Name: data.goodName,
+            AskSSCC: good ? good.askSSCC : "0",
+            Qty: data.qty,
+            SSCC: data.ssccCode || ""
+        });
     });
+
+    const payload = {
+        JobNumber: jobName,
+        Pallets: palletsArray
+    };
+
+    // Вывод в консоль для проверки и алерт
+    console.log("JSON для отправки:", JSON.stringify(payload, null, 2));
+    alert("JSON сформирован! Посмотрите консоль (F12 -> Console) для просмотра структуры.");
+});
 
     loadData();
 
