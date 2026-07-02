@@ -38,16 +38,22 @@
         </section>
 
         <section id="summaryTab" class="tab">
-            <div class="card">
-                <h3>Итоги</h3>
-                <div class="stat">Всего контейнеров: <strong id="summaryCount">0</strong></div>
-                <div class="stat">SSCC (уник/всего): <strong id="summarySSCC">0/0</strong></div>
-                <table border="1" width="100%" style="margin-top:10px;">
-                    <thead><tr><th>Товар</th><th>Паллет</th><th>Кол-во</th></tr></thead>
-                    <tbody id="summaryTable"><tr><td colspan="3">Нет данных</td></tr></tbody>
-                </table>
-            </div>
-        </section>
+    <div class="card">
+        <h3>Итоги</h3>
+        <div class="stat">Всего контейнеров: <strong id="summaryCount">0</strong></div>
+        <div class="stat">SSCC (уник/всего): <strong id="summarySSCC">0/0</strong></div>
+        <!-- НОВЫЙ ЭЛЕМЕНТ ДЛЯ ИТОГА ШТУК -->
+        <div class="stat">Всего штук: <strong id="summaryTotalQty">0</strong></div>
+        
+        <table border="1" width="100%" style="margin-top:10px;">
+            <thead><tr><th>Товар</th><th>Паллет</th><th>Кол-во</th></tr></thead>
+            <tbody id="summaryTable"><tr><td colspan="3">Нет данных</td></tr></tbody>
+        </table>
+        
+        <!-- НОВАЯ КНОПКА -->
+        <button id="sendBtn" style="width: 100%; margin-top: 20px; background: #2e8b57; font-size: 16px;">Отправить результат</button>
+    </div>
+</section>
     </main>
 </div>
 <script src="app.js"></script>
